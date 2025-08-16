@@ -3,7 +3,7 @@ import Parser from "rss-parser";
 export default async function handler(req, res) {
   const parser = new Parser();
 
-  const feedUrl = "https://cosleee.com/rss.xml"; // replace with your feed
+  const feedUrl = "https://rss.app/feeds/M5WkNVmUBOKbtggy.xml"; // replace with your feed
 
   try {
     const feed = await parser.parseURL(feedUrl);
