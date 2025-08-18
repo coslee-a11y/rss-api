@@ -44,9 +44,7 @@ export default async function handler(req, res) {
         const blogHtml = await blogRes.text();
         const $$ = cheerio.load(blogHtml);
 
-        const preview = $$("meta[name='blog-preview']").attr("content") || null;
-        const tags = $$("meta[name='tags']").attr("content")?.split(",") || [];
-
+        const preview = $$("meta[name='description']").attr("content") || null;
         enrichedItems.push({
           ...item,
           preview,
