@@ -48,7 +48,6 @@ export default async function handler(req, res) {
         enrichedItems.push({
           ...item,
           preview,
-          tags,
         });
       } catch (err) {
         console.error(`Error scraping ${item.link}:`, err);
