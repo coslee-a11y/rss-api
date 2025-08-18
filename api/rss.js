@@ -15,7 +15,6 @@ export default async function handler(req, res) {
       const image = $(el).find("img").attr("src") || null;
 
       if (title && link) {
-        // normalize link safely with URL constructor
         try {
           link = new URL(link, "https://www.musicofourdesire.com").href;
         } catch {
@@ -31,12 +30,11 @@ export default async function handler(req, res) {
       }
     });
 
-    // remove duplicates by link
+    // Remove duplicates by link
     const uniqueItems = items.filter(
       (item, idx, self) => idx === self.findIndex((t) => t.link === item.link)
     );
 
-    // enrich with meta tags
     const enrichedItems = [];
     for (const item of uniqueItems) {
       try {
@@ -44,10 +42,36 @@ export default async function handler(req, res) {
         const blogHtml = await blogRes.text();
         const $$ = cheerio.load(blogHtml);
 
+        // Grab meta description
         const preview = $$("meta[name='description']").attr("content") || null;
+
+        // Grab JSON-LD script
+        let jsonLD = null;
+        $$("script[type='application/ld+json']").each((i, script) => {
+          try {
+            const data = JSON.parse($$(script).html());
+            if (data["@type"] === "Article") {
+              jsonLD = data;
+            }
+          } catch {}
+        });
+
         enrichedItems.push({
-          ...item,
+          title: item.title,
+          link: item.link,
+          pubDate: item.pubDate,
+          image: item.image,
           preview,
+          jsonLD: jsonLD
+            ? {
+                headline: jsonLD.headline || item.title,
+                description: jsonLD.description || preview,
+                author: jsonLD.author?.name || null,
+                slug: jsonLD.slug || null,
+                tags: jsonLD.tags || [],
+                date: jsonLD.date || item.pubDate,
+              }
+            : null,
         });
       } catch (err) {
         console.error(`Error scraping ${item.link}:`, err);
