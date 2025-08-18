@@ -15,10 +15,12 @@ export default async function handler(req, res) {
       const image = $(el).find("img").attr("src") || null;
 
       if (title && link) {
-        // fix stray dot & ensure absolute URL
-        link = link.startsWith("http")
-          ? link.replace(".com./", ".com/") // cleanup bad URLs
-          : `https://www.musicofourdesire.com${link}`;
+        // normalize link safely with URL constructor
+        try {
+          link = new URL(link, "https://www.musicofourdesire.com").href;
+        } catch {
+          link = `https://www.musicofourdesire.com${link}`;
+        }
 
         items.push({
           title,
@@ -52,7 +54,7 @@ export default async function handler(req, res) {
         });
       } catch (err) {
         console.error(`Error scraping ${item.link}:`, err);
-        enrichedItems.push(item); // fallback
+        enrichedItems.push(item);
       }
     }
 
