@@ -8,26 +8,35 @@ export default async function handler(req, res) {
 
     const items = [];
 
-    // Loop through blog previews on index page
     $("a.framer-rphq8z").each((i, el) => {
-      const link = $(el).attr("href");
+      let link = $(el).attr("href");
       const title = $(el).find("[data-framer-name='Title'] p").text();
       const pubDate = $(el).find("[data-framer-name='Date'] p").text();
       const image = $(el).find("img").attr("src") || null;
 
       if (title && link) {
+        // fix stray dot & ensure absolute URL
+        link = link.startsWith("http")
+          ? link.replace(".com./", ".com/") // cleanup bad URLs
+          : `https://www.musicofourdesire.com${link}`;
+
         items.push({
           title,
-          link: link.startsWith("http") ? link : `https://www.musicofourdesire.com${link}`,
+          link,
           pubDate,
           image,
         });
       }
     });
 
-    // Now fetch each blog page to extract meta tags
+    // remove duplicates by link
+    const uniqueItems = items.filter(
+      (item, idx, self) => idx === self.findIndex((t) => t.link === item.link)
+    );
+
+    // enrich with meta tags
     const enrichedItems = [];
-    for (const item of items) {
+    for (const item of uniqueItems) {
       try {
         const blogRes = await fetch(item.link);
         const blogHtml = await blogRes.text();
@@ -43,7 +52,7 @@ export default async function handler(req, res) {
         });
       } catch (err) {
         console.error(`Error scraping ${item.link}:`, err);
-        enrichedItems.push(item); // fallback without meta
+        enrichedItems.push(item); // fallback
       }
     }
 
