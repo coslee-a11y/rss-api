@@ -10,7 +10,7 @@ export default async function handler(req, res) {
 
     $("a.framer-rphq8z").each((i, el) => {
       let link = $(el).attr("href");
-      const title = $(el).find("[data-framer-name='Title'] p").text();
+      const title = $(el).find("[data-framer-name='Title'] p").first().text().trim();
       const pubDate = $(el).find("[data-framer-name='Date'] p").text();
       const image = $(el).find("img").attr("src") || null;
 
